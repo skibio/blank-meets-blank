@@ -189,3 +189,24 @@ export const MOVIES: Movie[] = [
     setting: "the crumbling landscape of the mind",
   },
 ];
+
+/** Pick a random element from a non-empty array. */
+function pick<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+/** Case-insensitive lookup of a catalog movie by its exact title. */
+export function findMovie(title: string): Movie | undefined {
+  const trimmed = title.trim().toLowerCase();
+  return MOVIES.find((m) => m.title.toLowerCase() === trimmed);
+}
+
+/**
+ * Pick two distinct well-known movies at random. Used both by the "Surprise Me"
+ * button (to fill the blanks) and to resolve empty blanks at pitch time.
+ */
+export function pickTwoMovies(): [Movie, Movie] {
+  const first = pick(MOVIES);
+  const second = pick(MOVIES.filter((m) => m.title !== first.title));
+  return [first, second];
+}

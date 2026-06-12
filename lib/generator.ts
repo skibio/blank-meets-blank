@@ -1,14 +1,16 @@
 /**
- * Pitch generation logic — fully decoupled from the UI.
+ * Local, deterministic-ish pitch generation — the offline FALLBACK.
  *
- * The UI only ever calls `generatePitch(a, b)`. Today that resolves to a local,
- * deterministic-ish random pitch with zero network calls. To swap in an AI model
- * later, replace the body of `generatePitch` with an API call that returns the
- * same `PitchResult` shape (or point it at `generatePitchWithAI` below). Nothing
- * in the components needs to change.
+ * This module never touches the network. The live app generates pitches with an
+ * AI model via the `/api/pitch` route (see `lib/pitch.ts` and `app/api/pitch`);
+ * if that call fails for any reason, the UI and the route both fall back to the
+ * templated generation here, so the experience never breaks.
+ *
+ * Kept fully decoupled from React/UI and from any provider SDK so it can run on
+ * the server (inside the route's catch) and in the browser (offline fallback).
  */
 
-import { MOVIES, type Movie } from "./movies";
+import { MOVIES, findMovie, pickTwoMovies, type Movie } from "./movies";
 
 export interface PitchInput {
   /** First movie title (may be empty — a random film is chosen). */
@@ -33,23 +35,39 @@ function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-/** Find catalog metadata for a typed title, or invent light metadata for it. */
-function resolveMovie(title: string): Movie {
-  const trimmed = title.trim();
-  const match = MOVIES.find(
-    (m) => m.title.toLowerCase() === trimmed.toLowerCase(),
-  );
-  if (match) return match;
-
-  // The user typed a title we don't have metadata for. Build a neutral,
-  // serviceable profile so the generator still produces a coherent pitch.
+/** Build neutral metadata for a typed title we don't have in the catalog. */
+function inventMovie(title: string): Movie {
   return {
-    title: trimmed,
+    title: title.trim(),
     genre: "genre-bending",
     mood: "unexpected energy",
     hook: "a story that refuses to stay in one lane",
     setting: "a world all its own",
   };
+}
+
+/**
+ * Turn the two (optionally empty) inputs into two concrete movies: typed titles
+ * are matched against the catalog (or given light invented metadata), empty
+ * blanks become random well-known films, and we avoid pairing a film with
+ * itself. Shared by both the AI route and the local fallback so the headline
+ * titles always match whatever produced the pitch.
+ */
+export function resolvePair(input: PitchInput): [Movie, Movie] {
+  const aTyped = input.a.trim();
+  const bTyped = input.b.trim();
+
+  if (!aTyped && !bTyped) return pickTwoMovies();
+
+  const movieA = aTyped ? (findMovie(aTyped) ?? inventMovie(aTyped)) : null;
+  const movieB = bTyped ? (findMovie(bTyped) ?? inventMovie(bTyped)) : null;
+
+  const resolvedA =
+    movieA ?? pick(MOVIES.filter((m) => m.title !== movieB?.title));
+  const resolvedB =
+    movieB ?? pick(MOVIES.filter((m) => m.title !== resolvedA.title));
+
+  return [resolvedA, resolvedB];
 }
 
 /** Title-fragment banks used to assemble an invented movie name. */
@@ -107,47 +125,23 @@ const TAGLINES = [
   "Coming soon to a reality near you.",
 ];
 
-/**
- * Generate a fresh movie pitch from two (optionally empty) titles.
- *
- * This is the single seam the UI depends on. It is async on purpose so that a
- * future model-backed implementation is a drop-in replacement.
- */
-export async function generatePitch(input: PitchInput): Promise<PitchResult> {
-  const movieA = input.a.trim() ? resolveMovie(input.a) : pick(MOVIES);
-  let movieB = input.b.trim() ? resolveMovie(input.b) : pick(MOVIES);
-
-  // Avoid pitching a movie against itself when both blanks are random.
-  if (!input.b.trim() && movieB.title === movieA.title) {
-    const alternatives = MOVIES.filter((m) => m.title !== movieA.title);
-    if (alternatives.length) movieB = pick(alternatives);
-  }
-
+/** Compose a title + synopsis from two already-resolved movies. */
+export function composeLocalPitch(
+  a: Movie,
+  b: Movie,
+): Pick<PitchResult, "newTitle" | "synopsis"> {
   const template = pick(SYNOPSIS_TEMPLATES);
-  const synopsis = `${template(movieA, movieB)} ${pick(TAGLINES)}`;
-
   return {
-    titleA: movieA.title,
-    titleB: movieB.title,
     newTitle: inventTitle(),
-    synopsis,
+    synopsis: `${template(a, b)} ${pick(TAGLINES)}`,
   };
 }
 
 /**
- * --- Future AI implementation (intentionally inert for Version 1) ---
- *
- * When you're ready to go live with a model, fill this in and have
- * `generatePitch` delegate to it. The return shape is identical, so the UI is
- * untouched. Example sketch:
- *
- *   export async function generatePitchWithAI(input: PitchInput): Promise<PitchResult> {
- *     const res = await fetch("/api/pitch", {
- *       method: "POST",
- *       headers: { "Content-Type": "application/json" },
- *       body: JSON.stringify(input),
- *     });
- *     if (!res.ok) throw new Error("Pitch generation failed");
- *     return (await res.json()) as PitchResult;
- *   }
+ * Full local pitch: resolve the inputs, then compose. This is the seam the rest
+ * of the app falls back to when the AI call is unavailable.
  */
+export function generateLocalPitch(input: PitchInput): PitchResult {
+  const [a, b] = resolvePair(input);
+  return { titleA: a.title, titleB: b.title, ...composeLocalPitch(a, b) };
+}

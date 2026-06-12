@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { generatePitch, type PitchResult } from "@/lib/generator";
+import { generatePitch, type PitchResult } from "@/lib/pitch";
+import { pickTwoMovies } from "@/lib/movies";
 
 /**
  * An inline, auto-sizing title input that reads as part of the poster headline
@@ -64,6 +65,15 @@ export default function Home() {
     }
   }
 
+  // Surprise Me only fills the blanks with two random real films — it does not
+  // generate a pitch. The user reviews the matchup, then clicks Pitch It.
+  function handleSurprise() {
+    if (loading) return;
+    const [a, b] = pickTwoMovies();
+    setA(a.title);
+    setB(b.title);
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-20">
       <div className="flex w-full max-w-3xl flex-col items-center">
@@ -92,22 +102,36 @@ export default function Home() {
           </span>
         </h1>
 
-        {/* Action */}
-        <button
-          onClick={handlePitch}
-          disabled={loading}
-          className="group mt-14 inline-flex items-center justify-center
-            rounded-full bg-black px-10 py-4 text-sm font-bold uppercase
-            tracking-[0.2em] text-white transition-all duration-200
-            hover:bg-neutral-800 active:scale-[0.98]
-            disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading
-            ? "Pitching…"
-            : result
-              ? "Pitch a New Movie"
-              : "Pitch It"}
-        </button>
+        {/* Actions */}
+        <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row">
+          <button
+            onClick={handlePitch}
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-full
+              bg-black px-10 py-4 text-sm font-bold uppercase tracking-[0.2em]
+              text-white transition-all duration-200 hover:bg-neutral-800
+              active:scale-[0.98] disabled:cursor-not-allowed
+              disabled:opacity-50"
+          >
+            {loading
+              ? "Pitching…"
+              : result
+                ? "Pitch a New Movie"
+                : "Pitch It"}
+          </button>
+
+          <button
+            onClick={handleSurprise}
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-full
+              border border-black px-10 py-4 text-sm font-bold uppercase
+              tracking-[0.2em] text-black transition-all duration-200
+              hover:bg-black hover:text-white active:scale-[0.98]
+              disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Surprise Me
+          </button>
+        </div>
 
         {/* Result */}
         {result && (
