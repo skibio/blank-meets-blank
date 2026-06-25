@@ -1,39 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
+  /* Monochrome system — pure black canvas, white ink, hairline greys. */
+  --canvas: #000000;
+  --ink: #ffffff;
+  --body: #cccccc;
+  --muted: #999999;
+  --muted-soft: #666666;
+  --hairline: #262626;
+  --hairline-strong: #3a3a3a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --font-display: var(--font-display), "Saira Condensed", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-serif: var(--font-serif), "EB Garamond", Garamond, "Times New Roman",
+    serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", "Cascadia Mono",
+    monospace;
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Remove the native focus ring on the inline title blanks; we draw our own. */
+::selection {
+  background: var(--ink);
+  color: var(--canvas);
+}
+
+/* Inline title blanks: transparent field, hairline underline, no native ring. */
 .blank-input:focus {
   outline: none;
 }
 
-/* Hide number-spinner-style artifacts and keep placeholders subtle. */
 .blank-input::placeholder {
-  color: #c7c7c7;
+  color: var(--muted-soft);
+  opacity: 1;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -42,5 +58,5 @@ body {
 }
 
 .animate-rise {
-  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

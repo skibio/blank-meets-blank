@@ -38,11 +38,11 @@ function Blank({
       aria-label={ariaLabel}
       spellCheck={false}
       autoComplete="off"
-      className="blank-input field-sizing-content w-full min-w-[6ch] max-w-full
-        border-b-[6px] border-black bg-transparent pb-1 text-center
-        font-black uppercase leading-[0.95] tracking-tight
-        text-black caret-black transition-colors
-        focus:border-neutral-400"
+      className="blank-input field-sizing-content w-full min-w-[5ch] max-w-full
+        border-b border-[#3a3a3a] bg-transparent pb-2 text-center
+        font-display font-normal uppercase leading-[1.0] tracking-[0.05em]
+        text-white caret-white transition-colors duration-300
+        focus:border-white"
     />
   );
 }
@@ -93,87 +93,117 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-20">
-      <div className="flex w-full max-w-3xl flex-col items-center">
-        {/* Poster headline */}
-        <h1 className="flex w-full flex-col items-center gap-5 text-center">
-          <span className="w-full text-5xl sm:text-6xl md:text-7xl">
-            <Blank
-              value={a}
-              onChange={setA}
-              placeholder="______"
-              ariaLabel="First movie title"
-            />
-          </span>
+    <main className="flex min-h-screen flex-col bg-black">
+      {/* Top bar — persistent wordmark, machined side captions */}
+      <header className="grid w-full grid-cols-3 items-center px-6 py-6 sm:px-10">
+        <span className="hidden justify-self-start font-mono text-[10px] uppercase tracking-[0.3em] text-[#666666] sm:block">
+          Idea Engine
+        </span>
+        <span className="col-start-2 text-center font-display text-xs uppercase tracking-[0.5em] text-[#cccccc]">
+          Blank Meets Blank
+        </span>
+        <span className="hidden justify-self-end font-mono text-[10px] uppercase tracking-[0.3em] text-[#666666] sm:block">
+          No. ∞
+        </span>
+      </header>
 
-          <span className="select-none text-base font-medium uppercase tracking-[0.5em] text-neutral-400 sm:text-lg">
-            meets
-          </span>
+      {/* Hero / poster */}
+      <section className="flex flex-1 flex-col items-center justify-center px-6 py-20">
+        <div className="flex w-full max-w-4xl flex-col items-center">
+          <p className="mb-12 font-mono text-[11px] uppercase tracking-[0.4em] text-[#666666]">
+            Two films in — one original out
+          </p>
 
-          <span className="w-full text-5xl sm:text-6xl md:text-7xl">
-            <Blank
-              value={b}
-              onChange={setB}
-              placeholder="______"
-              ariaLabel="Second movie title"
-            />
-          </span>
-        </h1>
+          {/* Poster headline */}
+          <h1 className="flex w-full flex-col items-center gap-7 text-center">
+            <span className="w-full text-[clamp(2.75rem,9vw,6rem)]">
+              <Blank
+                value={a}
+                onChange={setA}
+                placeholder="______"
+                ariaLabel="First movie title"
+              />
+            </span>
 
-        {/* Actions */}
-        <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row">
-          <button
-            onClick={handlePitch}
-            disabled={loading}
-            className="inline-flex items-center justify-center rounded-full
-              bg-black px-10 py-4 text-sm font-bold uppercase tracking-[0.2em]
-              text-white transition-all duration-200 hover:bg-neutral-800
-              active:scale-[0.98] disabled:cursor-not-allowed
-              disabled:opacity-50"
-          >
-            {loading
-              ? "Pitching…"
-              : result
-                ? "Pitch a New Movie"
-                : "Pitch It"}
-          </button>
+            <span className="select-none font-mono text-[11px] uppercase tracking-[0.55em] text-[#888888] sm:text-xs">
+              meets
+            </span>
 
-          <button
-            onClick={handleSurprise}
-            disabled={loading}
-            className="inline-flex items-center justify-center rounded-full
-              border border-black px-10 py-4 text-sm font-bold uppercase
-              tracking-[0.2em] text-black transition-all duration-200
-              hover:bg-black hover:text-white active:scale-[0.98]
-              disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Surprise Me
-          </button>
-        </div>
+            <span className="w-full text-[clamp(2.75rem,9vw,6rem)]">
+              <Blank
+                value={b}
+                onChange={setB}
+                placeholder="______"
+                ariaLabel="Second movie title"
+              />
+            </span>
+          </h1>
 
-        {/* Result */}
-        {result && (
-          <div
-            ref={resultRef}
-            key={result.newTitle + result.synopsis}
-            className="animate-rise mt-20 w-full max-w-2xl"
-          >
-            <div className="mb-5 h-px w-full bg-neutral-200" />
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400">
-              Now Pitching
-            </p>
-            <h2 className="text-4xl font-black uppercase leading-[0.95] tracking-tight text-black sm:text-5xl">
-              {result.newTitle}
-            </h2>
-            <p className="mt-6 text-lg leading-relaxed text-neutral-700 sm:text-xl">
-              {result.synopsis}
-            </p>
+          {/* Actions — transparent outline pills */}
+          <div className="mt-16 flex flex-col items-center gap-4 sm:flex-row">
+            <button
+              onClick={handlePitch}
+              disabled={loading}
+              className="inline-flex h-11 items-center justify-center rounded-full
+                border border-white bg-transparent px-9 font-mono text-[13px]
+                uppercase tracking-[0.25em] text-white transition-colors
+                duration-200 hover:bg-white hover:text-black
+                active:scale-[0.99] disabled:cursor-not-allowed
+                disabled:border-[#3a3a3a] disabled:text-[#666666]
+                disabled:hover:bg-transparent"
+            >
+              {loading
+                ? "Pitching…"
+                : result
+                  ? "Pitch a New Movie"
+                  : "Pitch It"}
+            </button>
+
+            <button
+              onClick={handleSurprise}
+              disabled={loading}
+              className="inline-flex h-11 items-center justify-center rounded-full
+                border border-[#3a3a3a] bg-transparent px-9 font-mono text-[13px]
+                uppercase tracking-[0.25em] text-[#999999] transition-colors
+                duration-200 hover:border-white hover:text-white
+                active:scale-[0.99] disabled:cursor-not-allowed
+                disabled:opacity-40 disabled:hover:border-[#3a3a3a]
+                disabled:hover:text-[#999999]"
+            >
+              Surprise Me
+            </button>
           </div>
-        )}
-      </div>
 
-      <footer className="mt-24 text-xs uppercase tracking-[0.3em] text-neutral-300">
-        Blank Meets Blank
+          {/* Result — editorial: mono eyebrow, display title, serif synopsis */}
+          {result && (
+            <div
+              ref={resultRef}
+              key={result.newTitle + result.synopsis}
+              className="animate-rise mt-24 w-full max-w-2xl"
+            >
+              <div className="mb-8 h-px w-full bg-[#262626]" />
+              <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.4em] text-[#666666]">
+                Now Pitching
+              </p>
+              <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] font-normal uppercase leading-[1.05] tracking-[0.04em] text-white">
+                {result.newTitle}
+              </h2>
+              <p className="mt-7 font-serif text-[1.2rem] leading-[1.75] text-[#cccccc]">
+                {result.synopsis}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="flex w-full flex-col items-center gap-3 px-6 py-12">
+        <span className="font-display text-[11px] uppercase tracking-[0.5em] text-[#666666]">
+          Blank Meets Blank
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#444444]">
+          Original cinema, on demand
+        </span>
       </footer>
     </main>
   );
