@@ -39,11 +39,14 @@ function pick<T>(items: T[]): T {
 function inventMovie(title: string): Movie {
   return {
     title: title.trim(),
-    genre: "genre-bending",
-    mood: "unexpected energy",
-    hook: "a story that refuses to stay in one lane",
-    setting: "a world all its own",
+    year: new Date().getFullYear(),
+    tags: ["genre-bending", "original", "cinematic"],
   };
+}
+
+/** A random tone/genre tag from a movie, with a safe default. */
+function tag(m: Movie): string {
+  return m.tags.length ? pick(m.tags) : "cinematic";
 }
 
 /**
@@ -103,18 +106,21 @@ function inventTitle(): string {
   return `${pick(TITLE_PREFIXES)} ${pick(TITLE_NOUNS)}`;
 }
 
-/** Sentence templates that blend the two films' DNA into one synopsis. */
+/**
+ * Sentence templates for the offline fallback, composed from each film's tone
+ * tags (never their titles or plots — in the spirit of an original pitch).
+ */
 const SYNOPSIS_TEMPLATES = [
   (a: Movie, b: Movie) =>
-    `Set against ${a.setting}, it follows ${a.hook} — but when ${b.hook} arrives, the rules rewrite themselves. What begins as ${a.genre} curdles into ${b.mood}, and no one walks away unchanged.`,
+    `A ${tag(a)} premise with the pulse of something ${tag(b)}. It starts grounded and familiar, then tilts somewhere stranger — a protagonist who wants one impossible thing, and a world that keeps quietly rewriting the rules around them.`,
   (a: Movie, b: Movie) =>
-    `It opens with ${a.mood}, the unmistakable pulse of ${a.genre}. Then ${b.setting} bleeds in, dragging ${b.hook} into the frame. The collision is electric, intimate, and impossible to look away from.`,
+    `Picture a ${tag(a)} story told with ${tag(b)} nerve. One ordinary person, one specific ache, and a turn in the middle that no one in the room sees coming — intimate, cinematic, and a little off-kilter.`,
   (a: Movie, b: Movie) =>
-    `Imagine ${a.hook}, transplanted into ${b.setting}. The result fuses the ${a.mood} of one world with the ${b.genre} instincts of another — a film that feels both instantly familiar and entirely new.`,
+    `Equal parts ${tag(a)} and ${tag(b)}: a clean, strange premise that earns its escalation. The closer the protagonist gets to what they want, the more the ground shifts — and the harder the final choice becomes.`,
   (a: Movie, b: Movie) =>
-    `A ${a.genre} heart beats inside a ${b.genre} body. As ${a.hook} meets ${b.hook}, ${a.mood} gives way to ${b.mood}, and the story barrels toward an ending no one in the theater will see coming.`,
+    `A ${tag(a)} heart in a ${tag(b)} frame. It follows a character defined by a single, stubborn desire into a situation that won't resolve cleanly — building toward a dilemma rather than an answer.`,
   (a: Movie, b: Movie) =>
-    `Two forces, one frame: ${a.hook} and ${b.hook}. Across ${a.setting} and into ${b.setting}, the film trades ${a.genre} spectacle for ${b.mood} — a bold, original collision of everything we love about both.`,
+    `Somewhere between ${tag(a)} and ${tag(b)}. The setup is simple and human; the world around it is not. Specific, surprising, and emotionally grounded, it ends on an escalation you'll want to argue about afterward.`,
 ];
 
 const TAGLINES = [

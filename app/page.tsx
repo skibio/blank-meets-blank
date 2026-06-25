@@ -1,8 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { generatePitch, type PitchResult } from "@/lib/pitch";
+import {
+  generatePitch,
+  type PitchResult,
+  type RecentPitch,
+} from "@/lib/pitch";
 import { pickTwoMovies } from "@/lib/movies";
+
+/** First sentence of a synopsis, trimmed — a compact logline for session memory. */
+function toLogline(synopsis: string): string {
+  const firstSentence = synopsis.split(/(?<=[.!?])\s/)[0] ?? synopsis;
+  return firstSentence.trim().slice(0, 200);
+}
 
 /**
  * An inline, auto-sizing title input that reads as part of the poster headline
@@ -43,16 +53,24 @@ export default function Home() {
   const [result, setResult] = useState<PitchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  // Session memory (D): recent pitches, fed back so each new one goes elsewhere.
+  const recentRef = useRef<RecentPitch[]>([]);
 
   async function handlePitch() {
     if (loading) return;
     setLoading(true);
     try {
-      const pitch = await generatePitch({ a, b });
+      // Pass the prior pitches (not yet including this one) so the model steers away.
+      const pitch = await generatePitch({ a, b }, recentRef.current);
       // Reflect the resolved titles back into the blanks.
       setA(pitch.titleA);
       setB(pitch.titleB);
       setResult(pitch);
+      // Remember this pitch (keep the last 6) to diversify future ones.
+      recentRef.current = [
+        ...recentRef.current,
+        { title: pitch.newTitle, logline: toLogline(pitch.synopsis) },
+      ].slice(-6);
       // Let the result mount, then ease it into view.
       requestAnimationFrame(() => {
         resultRef.current?.scrollIntoView({

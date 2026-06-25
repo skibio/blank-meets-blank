@@ -16,6 +16,17 @@ import {
 
 export type { PitchInput, PitchResult } from "./generator";
 
+/**
+ * A lightweight record of a pitch already shown this session. Passing the last
+ * few back to the route gives the otherwise-stateless model "memory" so it can
+ * deliberately go somewhere new — the only reliable way to get run-to-run
+ * novelty, especially when the same two films are pitched again.
+ */
+export interface RecentPitch {
+  title: string;
+  logline: string;
+}
+
 /** True when a value has the full PitchResult shape we expect from the route. */
 function isPitchResult(value: unknown): value is PitchResult {
   if (!value || typeof value !== "object") return false;
@@ -28,12 +39,15 @@ function isPitchResult(value: unknown): value is PitchResult {
   );
 }
 
-export async function generatePitch(input: PitchInput): Promise<PitchResult> {
+export async function generatePitch(
+  input: PitchInput,
+  recent: RecentPitch[] = [],
+): Promise<PitchResult> {
   try {
     const res = await fetch("/api/pitch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, recent }),
     });
     if (!res.ok) throw new Error(`Pitch request failed: ${res.status}`);
 
