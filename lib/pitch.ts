@@ -35,6 +35,7 @@ function isPitchResult(value: unknown): value is PitchResult {
     typeof v.titleA === "string" &&
     typeof v.titleB === "string" &&
     typeof v.newTitle === "string" &&
+    typeof v.logline === "string" &&
     typeof v.synopsis === "string"
   );
 }

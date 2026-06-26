@@ -6,7 +6,8 @@ A movie idea generator built on the classic Hollywood pitch format:
 
 Type two movie titles into the blanks — or hit **Surprise Me** to drop in two
 random well-known films, or just leave them empty — then hit **Pitch It** to
-generate a brand-new fictional movie title and synopsis, written by Claude.
+generate a brand-new fictional movie: a title, a one-sentence logline, and a full
+synopsis, written by Claude.
 
 ## Stack
 

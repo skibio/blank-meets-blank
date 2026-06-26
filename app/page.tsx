@@ -8,12 +8,6 @@ import {
 } from "@/lib/pitch";
 import { pickTwoMovies } from "@/lib/movies";
 
-/** First sentence of a synopsis, trimmed — a compact logline for session memory. */
-function toLogline(synopsis: string): string {
-  const firstSentence = synopsis.split(/(?<=[.!?])\s/)[0] ?? synopsis;
-  return firstSentence.trim().slice(0, 200);
-}
-
 /**
  * An inline, auto-sizing title input that reads as part of the poster headline
  * rather than a form field. Empty state shows a long underline — the "blank".
@@ -69,7 +63,7 @@ export default function Home() {
       // Remember this pitch (keep the last 6) to diversify future ones.
       recentRef.current = [
         ...recentRef.current,
-        { title: pitch.newTitle, logline: toLogline(pitch.synopsis) },
+        { title: pitch.newTitle, logline: pitch.logline },
       ].slice(-6);
       // Let the result mount, then ease it into view.
       requestAnimationFrame(() => {
@@ -188,6 +182,9 @@ export default function Home() {
               <h2 className="font-display text-[clamp(2rem,6vw,3.25rem)] font-normal uppercase leading-[1.05] tracking-[0.04em] text-white">
                 {result.newTitle}
               </h2>
+              <p className="mt-6 font-serif text-[clamp(1.35rem,2.6vw,1.6rem)] italic leading-[1.45] text-[#e6e6e6]">
+                {result.logline}
+              </p>
               <p className="mt-7 font-serif text-[1.2rem] leading-[1.75] text-[#cccccc]">
                 {result.synopsis}
               </p>

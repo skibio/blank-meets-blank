@@ -26,6 +26,8 @@ export interface PitchResult {
   titleB: string;
   /** The freshly invented movie title. */
   newTitle: string;
+  /** A single-sentence logline (25-45 words) shown above the synopsis. */
+  logline: string;
   /** A compelling original synopsis for the new movie. */
   synopsis: string;
 }
@@ -131,14 +133,29 @@ const TAGLINES = [
   "Coming soon to a reality near you.",
 ];
 
-/** Compose a title + synopsis from two already-resolved movies. */
+/**
+ * One-sentence logline templates (~28-40 words) for the offline fallback. Built
+ * from tone tags only; they set up a protagonist, a world, and a hook without
+ * spoiling any ending.
+ */
+const LOGLINE_TEMPLATES = [
+  (a: Movie, b: Movie) =>
+    `When an ordinary life cracks open, a stubborn outsider is pulled into a ${tag(a)} world running on ${tag(b)} rules, chasing the one thing they want long past the point where walking away was still possible.`,
+  (a: Movie, b: Movie) =>
+    `A quietly haunted loner is drawn out of hiding into a ${tag(a)}, ${tag(b)} world, where getting what they came for means following a trail straight into someone else's empire of fear and ambition.`,
+  (a: Movie, b: Movie) =>
+    `Driven by a single stubborn desire, one person with everything to prove enters a ${tag(a)} reckoning charged with ${tag(b)} momentum, and learns how far they will travel to see it through to the end.`,
+];
+
+/** Compose a title, logline, and synopsis from two already-resolved movies. */
 export function composeLocalPitch(
   a: Movie,
   b: Movie,
-): Pick<PitchResult, "newTitle" | "synopsis"> {
+): Pick<PitchResult, "newTitle" | "logline" | "synopsis"> {
   const template = pick(SYNOPSIS_TEMPLATES);
   return {
     newTitle: inventTitle(),
+    logline: pick(LOGLINE_TEMPLATES)(a, b),
     synopsis: `${template(a, b)} ${pick(TAGLINES)}`,
   };
 }

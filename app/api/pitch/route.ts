@@ -22,13 +22,18 @@ const PITCH_SCHEMA = {
       description:
         "An original film title, 2 to 5 words — evocative and specific, not the name of a real movie.",
     },
+    logline: {
+      type: "string",
+      description:
+        "A single-sentence logline, 25 to 45 words, that clearly communicates the protagonist, setup, central conflict, and hook. A real movie logline, not marketing copy. Do NOT spoil the final dilemma or ending.",
+    },
     synopsis: {
       type: "string",
       description:
         "A 250-350 word treatment that fuses the two reference films into one original story: a named protagonist with a concrete motive and a personal wound, a vivid larger-than-life antagonist or force, an immersive sensory middle that escalates and curdles, a reversal at its center, and a stark final moral choice. Confident, present-tense, plot-forward prose.",
     },
   },
-  required: ["newTitle", "synopsis"],
+  required: ["newTitle", "logline", "synopsis"],
   additionalProperties: false,
 } as const;
 
@@ -57,7 +62,9 @@ const SYSTEM_PROMPT = [
   ``,
   `Write in confident, present-tense, plot-forward prose. Be concrete and sensory. Name characters with evocative names that fit the world. About 250 to 350 words.`,
   ``,
-  `Avoid: parody; fan fiction; literal crossovers that reuse the source films' actual characters or plots; generic thriller filler; fake-trailer clichés; over-explaining the reference films; and the phrases "must confront," "dark secrets," "nothing is as it seems," "race against time," and "forces them to question everything."`,
+  `Also write a LOGLINE: one sentence, 25 to 45 words, that clearly communicates the protagonist, the setup, the central conflict, and the hook. It should read like a real movie logline — the line in a programme or a catalogue — not marketing copy or a tagline. Do NOT spoil the central reversal, the final dilemma, or the ending; the logline sells the premise, the synopsis delivers the rest.`,
+  ``,
+  `Avoid (in both the logline and the synopsis): parody; fan fiction; literal crossovers that reuse the source films' actual characters or plots; generic thriller filler; fake-trailer clichés; over-explaining the reference films; and the phrases "must confront," "dark secrets," "nothing is as it seems," "race against time," and "forces them to question everything."`,
   ``,
   `Title: short, evocative, and specific — often noun-forward (e.g. "The ___"). 2 to 5 words. Never the name of a real movie.`,
 ].join("\n");
@@ -87,7 +94,7 @@ function buildPrompt(a: Movie, b: Movie, recent: RecentPitch[]): string {
 
   lines.push(
     ``,
-    `Return JSON with "newTitle" (2 to 5 words) and "synopsis" (250 to 350 words).`,
+    `Return JSON with "newTitle" (2 to 5 words), "logline" (one sentence, 25 to 45 words), and "synopsis" (250 to 350 words).`,
   );
 
   return lines.join("\n");
@@ -98,7 +105,7 @@ async function generateWithAI(
   a: Movie,
   b: Movie,
   recent: RecentPitch[],
-): Promise<Pick<PitchResult, "newTitle" | "synopsis">> {
+): Promise<Pick<PitchResult, "newTitle" | "logline" | "synopsis">> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
 
@@ -126,16 +133,22 @@ async function generateWithAI(
     !parsed ||
     typeof parsed !== "object" ||
     typeof (parsed as Record<string, unknown>).newTitle !== "string" ||
+    typeof (parsed as Record<string, unknown>).logline !== "string" ||
     typeof (parsed as Record<string, unknown>).synopsis !== "string"
   ) {
     throw new Error("Malformed model JSON");
   }
 
-  const { newTitle, synopsis } = parsed as {
+  const { newTitle, logline, synopsis } = parsed as {
     newTitle: string;
+    logline: string;
     synopsis: string;
   };
-  return { newTitle: newTitle.trim(), synopsis: synopsis.trim() };
+  return {
+    newTitle: newTitle.trim(),
+    logline: logline.trim(),
+    synopsis: synopsis.trim(),
+  };
 }
 
 /** Defensively parse the optional `recent` list from a request body. */
@@ -176,11 +189,16 @@ export async function POST(request: Request) {
   const [movieA, movieB] = resolvePair(input);
 
   try {
-    const { newTitle, synopsis } = await generateWithAI(movieA, movieB, recent);
+    const { newTitle, logline, synopsis } = await generateWithAI(
+      movieA,
+      movieB,
+      recent,
+    );
     return NextResponse.json({
       titleA: movieA.title,
       titleB: movieB.title,
       newTitle,
+      logline,
       synopsis,
     } satisfies PitchResult);
   } catch (err) {
